@@ -1,13 +1,9 @@
-from sentence_transformers import (
-    SentenceTransformer
+# tests/test_qdrant_methods.py
+
+from qdrant_client import QdrantClient
+
+client = QdrantClient(
+    path="qdrant_storage"
 )
 
-model = SentenceTransformer(
-    "BAAI/bge-small-en-v1.5"
-)
-
-vector = model.encode(
-    "hello world"
-)
-
-print(len(vector))
+print(dir(client))

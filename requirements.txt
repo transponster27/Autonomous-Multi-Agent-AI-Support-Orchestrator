@@ -1,5 +1,4 @@
 langchain
-chromadb
 sentence-transformers
 ollama
 pymupdf
@@ -22,3 +21,10 @@ pillow
 paddleocr
 paddlepaddle
 python-dotenv
+
+rank-bm25
+requests
+langchain-text-splitters
+scikit-learn
+faiss-cpu
+nltk

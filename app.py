@@ -1,22 +1,23 @@
-from src.rag.rag_pipeline import (
-    RAGPipeline
+from fastapi import FastAPI
+from sentence_transformers import SentenceTransformer
+from src.api.routes import router
+
+app = FastAPI(
+
+    title="RAG System",
+
+    version="1.0"
+
 )
 
-rag = RAGPipeline()
+app.include_router(router)
 
-while True:
 
-    question = input(
-        "\nAsk Question: "
-    )
+@app.get("/")
+def root():
 
-    if question.lower() == "exit":
-        break
+    return {
 
-    answer = rag.ask(
-        question
-    )
+        "message": "RAG API Running"
 
-    print("\nAnswer:\n")
-
-    print(answer)
+    }

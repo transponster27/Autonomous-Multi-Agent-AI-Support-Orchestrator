@@ -10,20 +10,23 @@ class RecursiveChunker:
         chunk_size=500,
         overlap=100
     ):
-
         self.splitter = (
             RecursiveCharacterTextSplitter(
                 chunk_size=chunk_size,
-                chunk_overlap=overlap
+                chunk_overlap=overlap,
+                separators=[
+                    "\n\n",
+                    "\n",
+                    ". ",
+                    " ",
+                    ""
+                ]
             )
         )
 
-    def split(
-        self,
-        text
-    ):
+    def split(self, text):
 
-        return (
-            self.splitter
-            .split_text(text)
-        )
+        if not text:
+            return []
+
+        return self.splitter.split_text(text)

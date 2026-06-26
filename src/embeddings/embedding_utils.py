@@ -8,7 +8,7 @@ class EmbeddingUtils:
         embedding
     ):
 
-        if len(embedding) == 384:
+        if len(embedding) == 768:
 
             return True
 

@@ -1,3 +1,5 @@
+import re
+
 from sentence_transformers import (
     SentenceTransformer
 )
@@ -6,18 +8,11 @@ from sklearn.metrics.pairwise import (
     cosine_similarity
 )
 
-import numpy as np
-
 
 class SemanticChunker:
 
-    def __init__(self):
-
-        self.model = (
-            SentenceTransformer(
-                "all-MiniLM-L6-v2"
-            )
-        )
+    def __init__(self, embedder_model):
+        self.model = embedder_model
 
     def split(
         self,
@@ -25,17 +20,28 @@ class SemanticChunker:
         threshold=0.65
     ):
 
-        sentences = (
-            text.split(". ")
-        )
+        if not text:
+            return []
+
+        sentences = [
+
+            s.strip()
+
+            for s in re.split(
+                r'(?<=[.!?])\s+',
+                text
+            )
+
+            if s.strip()
+        ]
 
         if len(sentences) <= 1:
-
             return [text]
 
         embeddings = (
             self.model.encode(
-                sentences
+                sentences,
+                normalize_embeddings=True
             )
         )
 
@@ -52,15 +58,15 @@ class SemanticChunker:
 
             similarity = (
                 cosine_similarity(
-                    [embeddings[i-1]],
+                    [embeddings[i - 1]],
                     [embeddings[i]]
                 )[0][0]
             )
 
-            if similarity > threshold:
+            if similarity >= threshold:
 
                 current_chunk += (
-                    ". "
+                    " "
                     + sentences[i]
                 )
 

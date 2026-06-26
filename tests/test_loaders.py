@@ -1,3 +1,15 @@
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.insert(0, str(PROJECT_ROOT))
+
+import multiprocessing
+
+if __name__ == "__main__":
+    multiprocessing.set_start_method("spawn", force=True)
+
 from src.loaders.document_loader import (
     DocumentLoader
 )
