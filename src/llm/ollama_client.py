@@ -2,7 +2,7 @@
 import requests
 
 class OllamaClient:
-    def __init__(self, base_url="http://localhost:11434", model="llama3.2:1b"):
+    def __init__(self, base_url="http://localhost:11434", model="llama3.2:3b"):
         self.base_url = base_url
         self.model = model 
 

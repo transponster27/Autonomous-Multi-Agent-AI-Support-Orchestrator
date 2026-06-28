@@ -1,0 +1,102 @@
+[
+  {
+    "query": "What is the definition of business policy?",
+    "ground_truth_chunk_id": "chunk_3_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What are the main features of an effective business policy?",
+    "ground_truth_chunk_id": "chunk_4_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "Why should a policy be clear and avoid jargon?",
+    "ground_truth_chunk_id": "chunk_4_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "How does business policy differ from business strategy?",
+    "ground_truth_chunk_id": "chunk_7_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "Who is responsible for formulating policy versus strategy?",
+    "ground_truth_chunk_id": "chunk_7_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What is the relationship between policy and daily activities?",
+    "ground_truth_chunk_id": "chunk_8_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "How do policies help lower-level management?",
+    "ground_truth_chunk_id": "chunk_2_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What does it mean for a policy to be flexible?",
+    "ground_truth_chunk_id": "chunk_5_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "Why is strategic planning important in organizational profit?",
+    "ground_truth_chunk_id": "chunk_9_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What is the last component of strategic management?",
+    "ground_truth_chunk_id": "chunk_24_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "How are policies used as tools for business strategy management?",
+    "ground_truth_chunk_id": "chunk_16_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What is the difference between actions and thought in policy vs strategy?",
+    "ground_truth_chunk_id": "chunk_8_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "Define the specific requirements of a business policy.",
+    "ground_truth_chunk_id": "chunk_3_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What happens if a policy is uncertain?",
+    "ground_truth_chunk_id": "chunk_4_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "How do policies govern business actions and resource acquisition?",
+    "ground_truth_chunk_id": "chunk_2_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What is a blueprint of repetitive organizational activities?",
+    "ground_truth_chunk_id": "chunk_7_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "Explain the comprehensive nature of future benefits in policy.",
+    "ground_truth_chunk_id": "chunk_5_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What is a methodology utilized to get a fixed target?",
+    "ground_truth_chunk_id": "chunk_9_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "How are modifications assessed during strategic management?",
+    "ground_truth_chunk_id": "chunk_24_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What questions do strategic policies and plans answer?",
+    "ground_truth_chunk_id": "chunk_16_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "Why must a policy be uniform and reliable?",
+    "ground_truth_chunk_id": "chunk_4_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "How do policies allow subordinates to follow guidelines efficiently?",
+    "ground_truth_chunk_id": "chunk_4_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What is the role of top-level management in policy formulation?",
+    "ground_truth_chunk_id": "chunk_7_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "How does policy deal with essential daily activities?",
+    "ground_truth_chunk_id": "chunk_8_Business-Policies-and-Management-Strategies.pdf"
+  },
+  {
+    "query": "What are the limitations within which decisions should be made?",
+    "ground_truth_chunk_id": "chunk_2_Business-Policies-and-Management-Strategies.pdf"
+  }
+]
