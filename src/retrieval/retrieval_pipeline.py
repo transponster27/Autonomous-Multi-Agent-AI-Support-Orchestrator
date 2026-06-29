@@ -8,8 +8,8 @@ class RetrievalPipeline:
         self.hybrid = HybridRetriever(chunks, faiss_manager, embedder)
         self.reranker = reranker # Use the passed instance instead of creating a new one
 
-    def retrieve(self, query):
+    def retrieve(self, query, top_k=5):
         candidates = self.hybrid.retrieve(query, top_k=10)
         if not candidates:
             return []
-        return self.reranker.rerank(query, candidates, top_k=5)
+        return self.reranker.rerank(query, candidates, top_k=top_k)

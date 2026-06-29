@@ -10,9 +10,6 @@ app = FastAPI(
 
 )
 
-app.include_router(router)
-
-
 @app.get("/")
 def root():
 
@@ -21,3 +18,5 @@ def root():
         "message": "RAG API Running"
 
     }
+
+app.include_router(router)
