@@ -1,36 +1,148 @@
-# Virtual environment
+# ==========================================
+# VIRTUAL ENVIRONMENTS
+# ==========================================
 .venv/
 venv/
 ENV/
+env/
+.venv_windows/
 
-# Storage (FAISS index, uploads, metadata)
+# ==========================================
+# STORAGE (FAISS, uploads, metadata)
+# ==========================================
 storage/
+storage/faiss.index
+storage/metadata.pkl
+storage/uploads/
+storage/file_registry.json
 
-# Python
+# ==========================================
+# PYTHON ARTIFACTS
+# ==========================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
 .Python
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Environment variables
+# ==========================================
+# ENVIRONMENT VARIABLES & SECRETS
+# ==========================================
 .env
 .env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+credentials/
 
-# IDE
+# ==========================================
+# IDE & EDITORS
+# ==========================================
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.project
+.classpath
+.settings/
 
-# OS
+# ==========================================
+# OS FILES
+# ==========================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Logs
+# ==========================================
+# LOGS
+# ==========================================
 *.log
 logs/
+*.log.*
+audit.log
 
-# Temporary files
+# ==========================================
+# JUPYTER NOTEBOOKS
+# ==========================================
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+profile_default/
+ipython_config.py
+
+# ==========================================
+# MODEL FILES (downloaded locally)
+# ==========================================
+models/
+*.bin
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.h5
+cache/
+.huggingface/
+torch/
+hub/
+
+# ==========================================
+# TESTING & COVERAGE
+# ==========================================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# ==========================================
+# MYPY / TYPE CHECKING
+# ==========================================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ==========================================
+# TEMPORARY FILES
+# ==========================================
 *.tmp
+*.temp
 temp/
+tmp/
+~*
+
+# ==========================================
+# DATABASE FILES
+# ==========================================
+*.db
+*.sqlite
+*.sqlite3
+
+# ==========================================
+# DOCKER (keep Dockerfile, ignore runtime)
+# ==========================================
+docker-compose.override.yml
+
+# ==========================================
+# SPECIFIC TO THIS PROJECT
+# ==========================================
+*.pkl
+*.pickle
+chroma/
+.lancedb/
+qdrant_storage/
