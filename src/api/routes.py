@@ -7,7 +7,9 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from src.utils.logger import logger
-
+from src.vectorstore.faiss_manager import FaissManager
+import faiss
+import numpy as np
 from src.embeddings.embedding_pipeline import EmbeddingPipeline
 from src.vectorstore.faiss_manager import FaissManager
 from src.metadata.metadata import MetadataExtractor
@@ -18,8 +20,16 @@ from src.loaders.document_loader import DocumentLoader
 from src.processing.cleaner import TextCleaner
 from src.generation.generation_pipeline import GenerationPipeline
 from src.agents.orchestrator import AgentOrchestrator
+from src.agents.conversational_agent import ConversationalAgent
+from src.agents.state import AgentState
 from src.llm.ollama_client import OllamaClient
+import asyncio
+from src.loaders.file_manager import FileManager
+from typing import List, Dict, Optional
+from src.agents.research_agent import ResearchAgent
 
+
+file_manager = FileManager()
 router = APIRouter()
 
 
@@ -86,11 +96,132 @@ def check_status():
         logger.exception(f"Status check failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to check status")
 
+# ==========================================
+# DELETE SINGLE DOCUMENT
+# ==========================================
+@router.delete("/documents/{filename}")
+def delete_document(filename: str):
+    """Delete a specific document from the index"""
+    global retrieval_pipeline, orchestrator
+    
+    try:
+        # Find chunks belonging to this document
+        chunks_to_keep = []
+        chunks_removed = 0
+        
+        for meta in faiss_manager.metadata:
+            if meta.get("document_name") == filename:
+                chunks_removed += 1
+            else:
+                chunks_to_keep.append(meta)
+        
+        if chunks_removed == 0:
+            raise HTTPException(status_code=404, detail=f"Document '{filename}' not found")
+        
+        # Update metadata
+        faiss_manager.metadata = chunks_to_keep
+        
+        # Rebuild FAISS index from scratch
+        if chunks_to_keep:
+            # Create new index
+            new_index = faiss.IndexFlatIP(768)
+            
+            # Re-embed remaining chunks
+            texts = [m["chunk_text"] for m in chunks_to_keep]
+            embeddings = embedder.generate_embeddings(texts)
+            
+            # Normalize and add
+            embeddings_array = np.array(embeddings).astype('float32')
+            faiss.normalize_L2(embeddings_array)
+            new_index.add(embeddings_array)
+            
+            # Replace old index
+            faiss_manager.index = new_index
+            
+            # FIX: Use the existing save() method
+            faiss_manager.save()
+            
+            # Rebuild pipelines
+            enriched_chunks = [{"chunk_text": m["chunk_text"], **m} for m in chunks_to_keep]
+            retrieval_pipeline = RetrievalPipeline(enriched_chunks, faiss_manager, embedder, reranker)
+            orchestrator = AgentOrchestrator(retrieval_pipeline, llm)
+        else:
+            # No chunks left - reset everything
+            faiss_manager.reset()  # FIX: Use existing reset() method
+            retrieval_pipeline = None
+            orchestrator = None
+        
+        logger.info(f"Deleted document: {filename} ({chunks_removed} chunks removed)")
+        
+        return {
+            "status": "success",
+            "message": f"Deleted '{filename}' ({chunks_removed} chunks removed)",
+            "remaining_vectors": faiss_manager.count()
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Delete failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete document")
+
+
+# ==========================================
+# DELETE ALL DOCUMENTS
+# ==========================================
+@router.delete("/documents")
+def delete_all_documents():
+    """Delete all documents from the index"""
+    global retrieval_pipeline, orchestrator
+    
+    try:
+        # FIX: Use existing reset() method
+        faiss_manager.reset()
+        
+        # Reset pipelines
+        retrieval_pipeline = None
+        orchestrator = None
+        
+        logger.info("All documents deleted")
+        
+        return {
+            "status": "success",
+            "message": "All documents deleted",
+            "remaining_vectors": 0
+        }
+    
+    except Exception as e:
+        logger.exception(f"Delete all failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete all documents")
+
+@router.get("/documents")
+def list_documents():
+    """List all indexed documents"""
+    try:
+        documents = list(set(meta.get("document_name", "Unknown") for meta in faiss_manager.metadata))
+        
+        doc_info = []
+        for doc_name in documents:
+            chunk_count = sum(1 for m in faiss_manager.metadata if m.get("document_name") == doc_name)
+            doc_info.append({
+                "filename": doc_name,
+                "chunks": chunk_count
+            })
+        
+        return {
+            "count": len(documents),
+            "documents": doc_info
+        }
+    except Exception as e:
+        logger.exception(f"List documents failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list documents")
 
 # 3. UPLOAD ENDPOINT
 
+# routes.py
+
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), domain: Optional[str] = None):
     global retrieval_pipeline, orchestrator
     
     # Validate file
@@ -100,86 +231,152 @@ async def upload_file(file: UploadFile = File(...)):
     
     content = await file.read()
     if len(content) / (1024 * 1024) > MAX_FILE_SIZE_MB:
-        raise HTTPException(status_code=413, detail=f"File too large (max {MAX_FILE_SIZE_MB}MB)")
+        raise HTTPException(status_code=413, detail=f"File too large")
     
-    try:
-        logger.info(f"Processing: {file.filename}")
-        
-        # Load and parse document
-        document = loader.load_bytes(content, file.filename)
-        pages = document.get("pages", [{"page": 1, "text": document["text"]}])
-        
-        # Process chunks
-        metadata_list = []
-        enriched_chunks = []
-        chunk_idx = 0
-        
-        for page_data in pages:
-            page_text = TextCleaner.clean(page_data["text"])
-            if not page_text.strip():
-                continue
-            
-            for c in chunker.create_chunks(page_text):
-                chunk_text = c["chunk_text"]
-                meta = MetadataExtractor.create(
-                    filename=file.filename,
-                    chunk=chunk_text,
-                    chunk_id=f"chunk_{chunk_idx}_{file.filename}",
-                    page_number=page_data["page"],
-                    category="general"
-                )
-                metadata_list.append(meta)
-                enriched_chunks.append({"chunk_text": chunk_text, **meta})
-                chunk_idx += 1
-        
-        if not metadata_list:
-            raise ValueError("No readable text extracted")
-        
-        # Generate embeddings and store
-        texts = [c["chunk_text"] for c in enriched_chunks]
-        embeddings = embedder.generate_embeddings(texts)
-        faiss_manager.add_documents(embeddings, metadata_list)
-        
-        # Rebuild pipelines
-        retrieval_pipeline = RetrievalPipeline(enriched_chunks, faiss_manager, embedder, reranker)
-        orchestrator = AgentOrchestrator(retrieval_pipeline, llm)
-        
-        logger.info(f"Indexed {len(metadata_list)} chunks from {file.filename}")
+    # Save file immediately
+    file_info = file_manager.save_file(content, file.filename)
+    
+    # Check for duplicate using content hash
+    if file_manager.check_duplicate(file_info["hash"], faiss_manager.metadata):
+        logger.info(f"Duplicate file detected: {file.filename}")
         return {
-            "status": "success",
-            "chunks_indexed": len(metadata_list),
-            "total_vectors": faiss_manager.count()
+            "status": "duplicate",
+            "message": "File already indexed",
+            "filename": file.filename,
+            "hash": file_info["hash"][:16]
         }
     
-    except ValueError as ve:
-        raise HTTPException(status_code=422, detail=str(ve))
+    # FIX: Process synchronously (no background task)
+    try:
+        result = await process_file_sync(file_info, domain)
+        
+        return {
+            "status": "uploaded",
+            "message": "File uploaded and indexed successfully.",
+            "filename": file.filename,
+            "hash": file_info["hash"][:16],
+            "chunks_indexed": result["chunks_indexed"],
+            "domain": domain
+        }
+    
     except Exception as e:
-        logger.exception(f"Upload failed: {e}")
-        raise HTTPException(status_code=500, detail="Processing failed")
+        logger.exception(f"Processing failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process file")
 
+
+async def process_file_sync(file_info: dict, domain: Optional[str] = None) -> dict:
+    """Process file synchronously and return result"""
+    global retrieval_pipeline, orchestrator
+    
+    logger.info(f"Processing: {file_info['filename']}")
+    
+    # Read saved file
+    with open(file_info["filepath"], "rb") as f:
+        content = f.read()
+    
+    # Parse document
+    document = loader.load_bytes(content, file_info["filename"])
+    pages = document.get("pages", [{"page": 1, "text": document["text"]}])
+
+    # Process chunks
+    metadata_list = []
+    enriched_chunks = []
+    chunk_idx = 0
+    
+    for page_data in pages:
+        page_text = TextCleaner.clean(page_data["text"])
+        if not page_text.strip():
+            continue
+        
+        for c in chunker.create_chunks(page_text):
+            chunk_text = c["chunk_text"]
+            meta = MetadataExtractor.create(
+                filename=file_info["filename"],
+                chunk=chunk_text,
+                chunk_id=f"chunk_{chunk_idx}_{file_info['filename']}",
+                page_number=page_data["page"],
+                category="general",
+                file_hash=file_info["hash"],
+                domain=domain  # ✅ Add domain to metadata
+            )
+            metadata_list.append(meta)
+            enriched_chunks.append({"chunk_text": chunk_text, **meta})
+            chunk_idx += 1
+    
+    if not metadata_list:
+        raise ValueError("No text extracted from file")
+    
+    # Generate embeddings and store
+    texts = [c["chunk_text"] for c in enriched_chunks]
+    embeddings = embedder.generate_embeddings(texts)
+    faiss_manager.add_documents(embeddings, metadata_list)
+    
+    # Rebuild pipelines
+    retrieval_pipeline = RetrievalPipeline(enriched_chunks, faiss_manager, embedder, reranker)
+    orchestrator = AgentOrchestrator(retrieval_pipeline, llm)
+    
+    logger.info(f"Processing complete: {len(metadata_list)} chunks indexed")
+    
+    return {"chunks_indexed": len(metadata_list)}
 
 # 4. QUERY ENDPOINT (Multi-Agent)
 
 @router.get("/query")
-def query(q: str = Query(..., min_length=3), session_id: str = "default"):
-    if not retrieval_pipeline:
-        raise HTTPException(status_code=400, detail="No documents indexed")
-    
+def query(
+    q: str = Query(..., min_length=1),
+    session_id: str = "default",
+    documents: Optional[str] = None,
+    domain: Optional[str] = None,
+    web_search: bool = Query(False, description="Enable web search")
+):
     try:
-        state = orchestrator.run(q, session_id)
+        document_filter = None
+        if documents:
+            document_filter = [doc.strip() for doc in documents.split(",")]
         
+        logger.info(f"Query received - web_search: {web_search}, domain: {domain}")
+        
+        # FIX 2: Handle case where orchestrator is None (no documents uploaded)
+        if orchestrator:
+            state = orchestrator.run(
+                q, 
+                session_id, 
+                document_filter=document_filter,
+                domain=domain,
+                web_search_enabled=web_search
+            )
+        else:
+            if web_search:
+                research_agent = ResearchAgent(None, llm, web_search_enabled=True)
+                state = AgentState(
+                    query=q,
+                    session_id=session_id,
+                    web_search_enabled=True
+                )
+                state = research_agent.run(state)
+            else:
+                conv_agent = ConversationalAgent(llm)
+                state = AgentState(query=q, session_id=session_id)
+                state = conv_agent.run(state)
+                state.agent_type = "conversational"
+        
+        # FIX 3: Always return a response
         return {
             "query": q,
-            "answer": state.final_answer or "Information not found",
+            "answer": state.final_answer or "I cannot answer that.",
             "citations": state.citations,
             "sources": state.retrieved_chunks,
             "session_id": session_id,
-            "query_type": state.query_type,
-            "agent_path": state.agent_path
+            "agent_type": state.agent_type,
+            "agent_path": state.agent_path,
+            "web_search_used": web_search
         }
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception(f"Query failed: {e}")
-        raise HTTPException(status_code=500, detail="Query processing failed")
+        raise HTTPException(status_code=500, detail="Query failed")
 
 
 # 5. LEGACY QUERY ENDPOINT (Single-Agent)

@@ -1,67 +1,103 @@
 from src.agents.state import AgentState
-from src.agents.router_agent import RouterAgent
-from src.agents.qa_agent import QAAgent
-from src.agents.analyst_agent import AnalystAgent
-from src.agents.critic_agent import CriticAgent
+from src.agents.conversational_agent import ConversationalAgent
+from src.agents.contextual_agent import ContextualAgent
+from src.agents.research_agent import ResearchAgent
 from src.retrieval.retrieval_pipeline import RetrievalPipeline
 from src.llm.ollama_client import OllamaClient
-from src.agents.researcher_agent import ResearcherAgent
 from src.utils.logger import logger
+from typing import List, Optional
 
 class AgentOrchestrator:
-    """Coordinates multi-agent workflow with self-critique."""
-    
     def __init__(self, retriever: RetrievalPipeline, llm: OllamaClient):
-        self.router = RouterAgent(llm)
-        self.qa_agent = QAAgent(retriever, llm)
-        self.analyst_agent = AnalystAgent(retriever, llm)
-        self.critic = CriticAgent(llm, max_retries=1)
+        self.conversational = ConversationalAgent(llm)
+        self.contextual = ContextualAgent(retriever, llm)
+        self.retriever = retriever
         self.llm = llm
-        self.researcher_agent = ResearcherAgent(retriever, llm)
+    
+    def run(
+        self, 
+        query: str, 
+        session_id: str = "default", 
+        document_filter: Optional[List[str]] = None, 
+        domain: Optional[str] = None,
+        web_search_enabled: bool = False
+    ) -> AgentState:
 
-    def run(self, query: str, session_id: str = "default") -> AgentState:
-        """Execute the multi-agent pipeline with critique loop."""
+        print(f"ORCHESTRATOR: web_search_enabled = {web_search_enabled}")
         
-        state = AgentState(query=query, session_id=session_id)
+        state = AgentState(
+            query=query,
+            session_id=session_id,
+            document_filter=document_filter or [],
+            domain=domain,
+            web_search_enabled=web_search_enabled
+        )
         
-        # Step 1: Route query
-        state = self.router.run(state)
-        logger.info(f"Query classified as: {state.query_type}")
+        # Log the state for debugging
+        logger.info(f"Orchestrator received - web_search_enabled: {state.web_search_enabled}")
         
-        # Step 2: Execute specialist agent
-        state = self._run_specialist(state)
+        # Route query
+        state = self._route_query(state)
         
-        # Save the first answer in case retry makes it worse
-        first_answer = state.final_answer
-        first_citations = state.citations.copy()
+        logger.info(f"Routed to agent type: {state.agent_type}")
         
-        # Step 3: Self-critique loop
-        state = self.critic.run(state)
+        # Execute appropriate agent
+        if state.agent_type == "conversational":
+            state = self.conversational.run(state)
+        elif state.agent_type == "research":
+            # Initialize ResearchAgent with web search flag
+            research_agent = ResearchAgent(self.retriever, self.llm, web_search_enabled)
+            state = research_agent.run(state)
+        else:
+            state = self.contextual.run(state)
         
-        # Step 4: Retry if critique failed
-        if state.critique_failed and state.retry_count < self.critic.max_retries:
-            logger.info(f"Retrying with stricter prompt (attempt {state.retry_count + 1})")
-            state.retry_count += 1
-            state = self._run_specialist(state, strict=True)
-            state = self.critic.run(state)
-            
-            # ✅ If retry made things worse, revert to first answer
-            if state.critique_failed:
-                logger.warning("Retry failed, reverting to original answer")
-                state.final_answer = first_answer
-                state.citations = first_citations
-        
-        logger.info(f"Final agent path: {' -> '.join(state.agent_path)}")
+        logger.info(f"Agent path: {' -> '.join(state.agent_path)}")
         return state
     
-    def _run_specialist(self, state: AgentState, strict: bool = False) -> AgentState:
-        """Dispatch to the appropriate specialist agent."""
-    
-        if state.query_type == "qa":
-            return self.qa_agent.run(state)
-        elif state.query_type == "analysis":
-            return self.analyst_agent.run(state)
-        elif state.query_type == "research":
-            return self.researcher_agent.run(state)
+    def _route_query(self, state: AgentState) -> AgentState:
+        """Route query to appropriate agent based on content and flags"""
         
+        # If web search is explicitly enabled, always route to research
+        if state.web_search_enabled:
+            state.agent_type = "research"
+            state.agent_path.append("router")
+            logger.info("Web search enabled - routing to research agent")
+            return state
+        
+        # Three-category classification
+        prompt = f"""Classify this query into exactly one category.
+
+Query: {state.query}
+
+Category "conversational" - Use ONLY for:
+- Greetings: hello, hi, hey, good morning, good evening
+- Pleasantries: thanks, thank you, bye, goodbye, see you
+- Questions about the assistant: who are you, what can you do, how are you
+- Small talk: how's it going, what's up (as greeting)
+
+Category "research" - Use for complex queries requiring deep analysis:
+- Requests for comprehensive research or investigation
+- Queries asking for "deep dive", "extensive research", "thorough analysis"
+- Questions requiring multiple sources or perspectives
+- Complex topics needing detailed exploration (e.g., "journey of an AI engineer", "complete guide to...")
+- When the query explicitly mentions "research", "investigate", or "analyze deeply"
+
+Category "contextual" - Use for straightforward information requests:
+- Simple factual questions
+- Requests for definitions, explanations, or summaries
+- Questions about specific documents or policies
+
+Respond with ONLY the word "conversational", "research", or "contextual":"""
+
+        decision = self.llm.generate(prompt).strip().lower()
+        
+        if "conversational" in decision:
+            state.agent_type = "conversational"
+        elif "research" in decision:
+            state.agent_type = "research"
+        else:
+            state.agent_type = "contextual"
+        
+        state.agent_path.append("router")
+        logger.info(f"LLM classified query as: {state.agent_type}")
         return state

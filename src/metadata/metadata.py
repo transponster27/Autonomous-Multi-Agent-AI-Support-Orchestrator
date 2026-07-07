@@ -10,7 +10,9 @@ class MetadataExtractor:
         chunk,
         chunk_id,
         page_number=1,
-        category="general"
+        category="general",
+        file_hash=None,
+        domain=None
     ):
 
         return {
@@ -35,5 +37,9 @@ class MetadataExtractor:
             "chunk_text": chunk,
 
             "upload_time":
-            datetime.now().isoformat()
+            datetime.now().isoformat(),
+
+            "file_hash": file_hash,
+
+            "domain": domain 
         }
