@@ -27,11 +27,11 @@ import asyncio
 from src.loaders.file_manager import FileManager
 from typing import List, Dict, Optional
 from src.agents.research_agent import ResearchAgent
+from src.vectorstore.page_index import PageIndex
 
-
+page_index = PageIndex()
 file_manager = FileManager()
 router = APIRouter()
-
 
 # 1. GLOBAL INITIALIZATION
 
@@ -218,8 +218,6 @@ def list_documents():
 
 # 3. UPLOAD ENDPOINT
 
-# routes.py
-
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...), domain: Optional[str] = None):
     global retrieval_pipeline, orchestrator
@@ -288,7 +286,7 @@ async def process_file_sync(file_info: dict, domain: Optional[str] = None) -> di
         if not page_text.strip():
             continue
         
-        for c in chunker.create_chunks(page_text):
+        for c in chunker.create_chunks(page_text, strategy="semantic"):
             chunk_text = c["chunk_text"]
             meta = MetadataExtractor.create(
                 filename=file_info["filename"],
@@ -297,8 +295,15 @@ async def process_file_sync(file_info: dict, domain: Optional[str] = None) -> di
                 page_number=page_data["page"],
                 category="general",
                 file_hash=file_info["hash"],
-                domain=domain  # ✅ Add domain to metadata
+                domain=domain  #  Add domain to metadata
             )
+            #  Register chunk in page index
+            page_index.add_chunk(
+                chunk_id=meta["chunk_id"],
+                document_name=meta["document_name"],
+                page_number=meta["page_number"]
+            )
+            print(f"Chunk {chunk_idx}: {len(chunk_text)} chars")
             metadata_list.append(meta)
             enriched_chunks.append({"chunk_text": chunk_text, **meta})
             chunk_idx += 1
@@ -318,6 +323,28 @@ async def process_file_sync(file_info: dict, domain: Optional[str] = None) -> di
     logger.info(f"Processing complete: {len(metadata_list)} chunks indexed")
     
     return {"chunks_indexed": len(metadata_list)}
+
+@router.get("/page/{document_name}/{page_number}")
+def get_page_content(document_name: str, page_number: int):
+    """Retrieve all chunks from a specific page"""
+    chunk_ids = page_index.get_chunks_for_page(document_name, page_number)
+    
+    if not chunk_ids:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    # Retrieve chunks from FAISS
+    chunks = []
+    for meta in faiss_manager.metadata:
+        if meta["chunk_id"] in chunk_ids:
+            chunks.append(meta)
+    
+    return {
+        "document": document_name,
+        "page": page_number,
+        "chunks": chunks,
+        "full_text": "\n\n".join([c["chunk_text"] for c in chunks])
+    }
+
 
 # 4. QUERY ENDPOINT (Multi-Agent)
 
@@ -361,15 +388,18 @@ def query(
                 state.agent_type = "conversational"
         
         # FIX 3: Always return a response
+        print(f"DEBUG: citations = {state.citations}")
+        print(f"DEBUG: retrieved_chunks count = {len(state.retrieved_chunks)}") 
         return {
             "query": q,
             "answer": state.final_answer or "I cannot answer that.",
-            "citations": state.citations,
-            "sources": state.retrieved_chunks,
+            "sources": state.citations, # Now numbered: [{number, document, page, url}, ...]
             "session_id": session_id,
             "agent_type": state.agent_type,
             "agent_path": state.agent_path,
-            "web_search_used": web_search
+            "web_search_used": web_search,
+            "validation_score": state.validation_score,
+            "validation_attempts": state.validation_attempts
         }
 
     except HTTPException:

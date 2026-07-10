@@ -48,7 +48,7 @@ graph TD
         C -->|PDF| D[PyMuPDF<br/>Page-by-Page]
         C -->|DOCX| E[python-docx]
         C -->|TXT| F[UTF-8 / CP1252]
-        C -->|Image| G[PaddleOCR]
+        C -->|Image| G[Tesseract]
         D --> H[Text Cleaner]
         E --> H
         F --> H
@@ -68,7 +68,7 @@ graph TD
         Q --> R
         R --> S[Reranker<br/>Cross-Encoder]
         S --> T[Context Builder<br/>+ Citation Builder]
-        T --> U[Ollama LLM<br/>qwen2.5:3b]
+        T --> U[Ollama LLM<br/>llama3.2:3b]
         U --> V[✅ Answer + Citations]
     end
 

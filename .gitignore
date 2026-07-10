@@ -146,3 +146,5 @@ docker-compose.override.yml
 chroma/
 .lancedb/
 qdrant_storage/
+*.index
+file_registry.json

@@ -6,7 +6,6 @@ from src.processing.semantic_chunker import (
     SemanticChunker
 )
 
-
 class ChunkManager:
 
 # FIX: Accept the model instance and pass it down

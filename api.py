@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from sentence_transformers import SentenceTransformer
 from src.api.routes import router
+from dotenv import load_dotenv
+load_dotenv()  # This loads the .env file
 
 app = FastAPI(
 

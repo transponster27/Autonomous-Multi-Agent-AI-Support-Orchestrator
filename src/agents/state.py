@@ -22,3 +22,8 @@ class AgentState:
     # Metadata
     documents_searched: List[str] = field(default_factory=list)
     agent_path: List[str] = field(default_factory=list)
+
+    # Validation tracking
+    validation_score: Optional[int] = None
+    validation_attempts: int = 0
+    validation_feedback: Optional[str] = None

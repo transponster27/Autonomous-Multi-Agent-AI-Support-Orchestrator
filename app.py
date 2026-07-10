@@ -41,8 +41,6 @@ with st.sidebar:
     if uploaded_file and st.button("Upload", use_container_width=True):
         with st.spinner("Uploading and indexing..."):
             files = {"file": (uploaded_file.name, uploaded_file.getvalue())}
-            
-            # Pass domain parameter
             data = {}
             if upload_domain != "None":
                 data["domain"] = upload_domain.lower()
@@ -60,7 +58,7 @@ with st.sidebar:
     
     st.divider()
     
-    # Search Options - ONLY the toggle goes here
+    # Search Options
     st.subheader("Search Options")
     st.session_state.web_search_enabled = st.toggle(
         "Enable Web Search",
@@ -100,7 +98,6 @@ with st.sidebar:
                                 else:
                                     st.error("Failed")
                 
-                # Delete All Button
                 if st.button("Delete All Documents", use_container_width=True, type="secondary"):
                     with st.spinner("Deleting all..."):
                         del_all_resp = requests.delete(f"{BASE_URL}/documents")
@@ -109,7 +106,7 @@ with st.sidebar:
                             st.rerun()
                         else:
                             st.error("Failed")
-    except Exception as e:
+    except Exception:
         st.caption("Cannot connect to server")
     
     st.divider()
@@ -128,21 +125,32 @@ for i, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         
-        # Show citations for assistant messages
-        if message["role"] == "assistant" and message.get("citations"):
+        #  Show numbered sources list
+        if message["role"] == "assistant" and message.get("sources"):
             with st.expander("Sources"):
-                for citation in message["citations"]:
-                    if citation.get("url"):
-                        st.write(f"- [{citation['document']}]({citation['url']})")
+                for src in message["sources"]:
+                    num = src.get("number", "?")
+                    doc = src.get("document", "Unknown")
+                    page = src.get("page", "")
+                    url = src.get("url")
+                    
+                    if url:
+                        st.markdown(f"**[{num}]** [{doc}]({url})")
                     else:
-                        st.write(f"- {citation['document']} (Page {citation['page']})")
+                        st.markdown(f"**[{num}]** {doc} (Page {page})")
+
+        #  Show validation score
+        if message["role"] == "assistant":
+            score = message.get("validation_score")
+            attempts = message.get("validation_attempts")
+            if score is not None:
+                st.caption(f"Validator score: {score}/10 (attempt {attempts})")
         
         # Edit button for user messages
         if message["role"] == "user":
             if st.button("Edit & Resend", key=f"edit_{i}"):
                 st.session_state.edit_mode = True
                 st.session_state.edit_query = message["content"]
-                # Remove this message and all after it
                 st.session_state.messages = st.session_state.messages[:i]
                 st.rerun()
 
@@ -151,7 +159,6 @@ for i, message in enumerate(st.session_state.messages):
 # ==========================================
 
 if st.session_state.edit_mode:
-    # Edit mode - show text input with pre-filled value
     st.info("Editing previous query. Modify and press Send.")
     
     col1, col2 = st.columns([0.85, 0.15])
@@ -173,7 +180,6 @@ if st.session_state.edit_mode:
     else:
         process_query = False
 else:
-    # Normal mode - show chat input
     prompt = st.chat_input("Ask a question...")
     process_query = bool(prompt)
 
@@ -182,7 +188,6 @@ else:
 # ==========================================
 
 if process_query and prompt:
-    # Add user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     
     with st.chat_message("user"):
@@ -191,7 +196,6 @@ if process_query and prompt:
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
-                # Build params correctly here
                 params = {
                     "q": prompt,
                     "session_id": "streamlit_user",
@@ -214,11 +218,12 @@ if process_query and prompt:
                     result = response.json()
                     
                     answer = result.get("answer", "I could not generate a response.")
-                    citations = result.get("citations", [])
+                    #  FIX: Read "sources" not "citations"
+                    sources = result.get("sources", [])
                     agent_type = result.get("agent_type", "unknown")
                     web_search_used = result.get("web_search_used", False)
                     
-                    # ✅ Show appropriate caption based on agent type and web search
+                    # Show caption
                     if web_search_used:
                         st.caption("Research response (documents + web)")
                     elif agent_type == "research":
@@ -231,19 +236,33 @@ if process_query and prompt:
                     
                     st.markdown(answer)
                     
-                    if citations:
-                        with st.expander("Sources"):
-                            for citation in citations:
-                                if citation.get("url"):
-                                    st.write(f"- [{citation['document']}]({citation['url']})")
-                                else:
-                                    st.write(f"- {citation['document']} (Page {citation['page']})")
+                    #  Show validation score immediately
+                    score = result.get("validation_score")
+                    attempts = result.get("validation_attempts")
+                    if score is not None:
+                        st.caption(f"Validator score: {score}/10 (attempt {attempts})")
                     
+                    #  Store message with sources
                     st.session_state.messages.append({
                         "role": "assistant",
                         "content": answer,
-                        "citations": citations
+                        "sources": sources,
+                        "validation_score": score,
+                        "validation_attempts": attempts
                     })
+
+                    if sources:
+                        with st.expander("Sources"):
+                            for src in sources:
+                                num = src.get("number", "?")
+                                doc = src.get("document", "Unknown")
+                                page = src.get("page", "")
+                                url = src.get("url")
+                                
+                                if url:
+                                    st.markdown(f"**[{num}]** [{doc}]({url})")
+                                else:
+                                    st.markdown(f"**[{num}]** {doc} (Page {page})")
                 
             except requests.exceptions.ConnectionError:
                 st.error("Cannot connect to server. Is FastAPI running on port 8000?")
