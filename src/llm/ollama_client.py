@@ -15,7 +15,7 @@ class OllamaClient:
                     "prompt": prompt,
                     "stream": False,
                     "options": {
-                        "num_ctx": 4096  # Matched the code to your 8k comment
+                        "num_ctx": 4096  
                     }
                 },
                 timeout=120 

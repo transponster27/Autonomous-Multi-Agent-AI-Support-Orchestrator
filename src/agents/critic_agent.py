@@ -30,7 +30,7 @@ class CriticAgent:
             for i, chunk in enumerate(state.retrieved_chunks)
         ])
         
-        # ✅ MORE LENIENT CRITIQUE PROMPT
+        #  MORE LENIENT CRITIQUE PROMPT
         critique_prompt = f"""You are a reasonable fact-checker. Review the generated answer against the provided context.
 
     Context:
@@ -73,7 +73,7 @@ class CriticAgent:
             state.intermediate_reasoning = f"Critique: {critique}"
             state.agent_path.append("critic_agent")
             
-            # ✅ MORE LENIENT DECISION LOGIC
+            #  MORE LENIENT DECISION LOGIC
             # Only fail if grounded is false AND there are major issues
             grounded = critique.get("grounded", True)
             complete = critique.get("complete", True)

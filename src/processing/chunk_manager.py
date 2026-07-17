@@ -8,7 +8,7 @@ from src.processing.semantic_chunker import (
 
 class ChunkManager:
 
-# FIX: Accept the model instance and pass it down
+# : Accept the model instance and pass it down
     def __init__(self, embedder_model=None):
         self.recursive = RecursiveChunker()
         # Only initialize semantic if we actually have a model passed in

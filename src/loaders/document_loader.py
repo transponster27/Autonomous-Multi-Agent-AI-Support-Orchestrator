@@ -42,7 +42,6 @@ class DocumentLoader:
                 os.remove(tmp_filepath)
 
     def load(self, filepath):
-        # (Keep your existing load() method exactly as it is)
         extension = Path(filepath).suffix.lower()
 
         if extension == ".pdf":

@@ -17,7 +17,7 @@ class PageIndex:
             try:
                 with open(self.index_path, "rb") as f:
                     data = pickle.load(f)
-                    # ✅ FIX: Convert back to defaultdict
+                    #  Convert back to defaultdict
                     loaded_page_to_chunks = data.get("page_to_chunks", {})
                     self.page_to_chunks = defaultdict(list, loaded_page_to_chunks)
                     self.chunk_to_page = data.get("chunk_to_page", {})
@@ -39,7 +39,7 @@ class PageIndex:
     def add_chunk(self, chunk_id, document_name, page_number):
         """Register a chunk with its page location"""
         key = (document_name, page_number)
-        # ✅ Now this works because page_to_chunks is a defaultdict
+        #  Now this works because page_to_chunks is a defaultdict
         self.page_to_chunks[key].append(chunk_id)
         self.chunk_to_page[chunk_id] = key
         self._save()

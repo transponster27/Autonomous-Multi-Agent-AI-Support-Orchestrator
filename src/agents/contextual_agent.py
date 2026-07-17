@@ -35,10 +35,10 @@ class ContextualAgent:
         
         context = ContextBuilder.build(state.retrieved_chunks)
         
-        # ✅ Build NUMBERED context (not just plain text)
+        #  Build NUMBERED context (not just plain text)
         context = self._build_numbered_context(state.retrieved_chunks)
         
-        # ✅ Strict prompt enforcing numbered citations and no preamble
+        #  Strict prompt enforcing numbered citations and no preamble
         prompt = f"""Answer the question using ONLY the provided numbered sources.
 
 STRICT RULES:
@@ -59,9 +59,9 @@ Answer (start directly with the information):"""
         
         answer = self.llm.generate(prompt)
         
-        # ✅ Clean any preamble the LLM might have added anyway
+        #  Clean any preamble the LLM might have added anyway
         answer = self._clean_preamble(answer)
-        # ✅ Build numbered citation list
+        #  Build numbered citation list
         state.citations = self._build_numbered_citations(state.retrieved_chunks)
         state.final_answer = answer
         state.agent_path.append("contextual_agent")
@@ -99,7 +99,7 @@ Answer (start directly with the information):"""
             doc_name = chunk.get("document_name", "Unknown")
             page = chunk.get("page_number", "N/A")
             
-            # ✅ Strip full names from document name (keep just filename)
+            #  Strip full names from document name (keep just filename)
             doc_name = self._clean_author_name(doc_name)
             
             citations.append({

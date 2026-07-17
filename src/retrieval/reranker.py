@@ -20,7 +20,7 @@ class Reranker:
             reverse=True        
         )
 
-        # FIX: Overwrite the old "score" key with the new Reranker score
+        # : Overwrite the old "score" key with the new Reranker score
         return [
             {**doc, "score": float(score)} 
             for doc, score 

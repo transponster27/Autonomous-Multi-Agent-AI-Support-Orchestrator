@@ -218,7 +218,7 @@ if process_query and prompt:
                     result = response.json()
                     
                     answer = result.get("answer", "I could not generate a response.")
-                    #  FIX: Read "sources" not "citations"
+                    #  : Read "sources" not "citations"
                     sources = result.get("sources", [])
                     agent_type = result.get("agent_type", "unknown")
                     web_search_used = result.get("web_search_used", False)

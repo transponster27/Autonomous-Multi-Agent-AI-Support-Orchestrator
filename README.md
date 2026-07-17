@@ -69,7 +69,7 @@ graph TD
         R --> S[Reranker<br/>Cross-Encoder]
         S --> T[Context Builder<br/>+ Citation Builder]
         T --> U[Ollama LLM<br/>llama3.2:3b]
-        U --> V[✅ Answer + Citations]
+        U --> V[ Answer + Citations]
     end
 
     subgraph Memory
@@ -83,19 +83,19 @@ graph TD
 ## ✨ Features
 
 ### Core Features
-- ✅ **Multi-Format Ingestion** — PDF (page-by-page), DOCX, TXT, and Images (OCR)
-- ✅ **Hybrid Search** — FAISS Inner Product + BM25 Okapi with deduplication
-- ✅ **Cross-Encoder Reranking** — BAAI/bge-reranker-base re-scores candidates
-- ✅ **Persistent Vector Store** — FAISS index + metadata saved to disk automatically
-- ✅ **Page-Level Citations** — Every answer includes document name and exact page number
-- ✅ **Anti-Hallucination Guard** — Strict prompt engineering + response validation
-- ✅ **Conversational Memory** — Session-based chat history with automatic trimming
+-  **Multi-Format Ingestion** — PDF (page-by-page), DOCX, TXT, and Images (OCR)
+-  **Hybrid Search** — FAISS Inner Product + BM25 Okapi with deduplication
+-  **Cross-Encoder Reranking** — BAAI/bge-reranker-base re-scores candidates
+-  **Persistent Vector Store** — FAISS index + metadata saved to disk automatically
+-  **Page-Level Citations** — Every answer includes document name and exact page number
+-  **Anti-Hallucination Guard** — Strict prompt engineering + response validation
+-  **Conversational Memory** — Session-based chat history with automatic trimming
 
 ### Production Features
-- ✅ **Centralized Logging** — Timestamped, structured logs for all pipeline stages
-- ✅ **Input Validation** — File type, file size, and query length enforcement
-- ✅ **Graceful Error Handling** — HTTP status codes (400, 413, 422, 500) with safe fallbacks
-- ✅ **Automated Evaluation** — Hit@1, Hit@3, Hit@5 metrics with Markdown report generation
+-  **Centralized Logging** — Timestamped, structured logs for all pipeline stages
+-  **Input Validation** — File type, file size, and query length enforcement
+-  **Graceful Error Handling** — HTTP status codes (400, 413, 422, 500) with safe fallbacks
+-  **Automated Evaluation** — Hit@1, Hit@3, Hit@5 metrics with Markdown report generation
 
 ---
 
@@ -262,7 +262,7 @@ Ask a question about uploaded documents.
 **Parameters:**
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `q` | string | ✅ Yes | — | The question (min 3 characters) |
+| `q` | string |  Yes | — | The question (min 3 characters) |
 | `session_id` | string | ❌ No | `"default"` | Conversation session identifier |
 
 **Request:**
@@ -417,7 +417,7 @@ Storing full chat history would eventually exceed the LLM's 4096-token context w
 
 ---
 
-## ✅ Deliverables Checklist
+##  Deliverables Checklist
 
 - [x] Source code repository with modular architecture
 - [x] Architecture diagram of the RAG pipeline (Mermaid)

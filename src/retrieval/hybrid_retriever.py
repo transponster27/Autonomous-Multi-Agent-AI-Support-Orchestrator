@@ -12,9 +12,9 @@ class HybridRetriever:
         query, 
         top_k=5, 
         document_filter: Optional[List[str]] = None,
-        domain_filter: Optional[str] = None  # ✅ Add domain filter
+        domain_filter: Optional[str] = None  #  Add domain filter
     ):
-        # ✅ Pass both filters to underlying retrievers
+        #  Pass both filters to underlying retrievers
         vector_results = self.vector.retrieve(
             query, 
             top_k, 

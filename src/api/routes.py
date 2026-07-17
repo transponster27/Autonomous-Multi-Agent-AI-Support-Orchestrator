@@ -138,7 +138,7 @@ def delete_document(filename: str):
             # Replace old index
             faiss_manager.index = new_index
             
-            # FIX: Use the existing save() method
+            # : Use the existing save() method
             faiss_manager.save()
             
             # Rebuild pipelines
@@ -147,7 +147,7 @@ def delete_document(filename: str):
             orchestrator = AgentOrchestrator(retrieval_pipeline, llm)
         else:
             # No chunks left - reset everything
-            faiss_manager.reset()  # FIX: Use existing reset() method
+            faiss_manager.reset()  # : Use existing reset() method
             retrieval_pipeline = None
             orchestrator = None
         
@@ -175,7 +175,7 @@ def delete_all_documents():
     global retrieval_pipeline, orchestrator
     
     try:
-        # FIX: Use existing reset() method
+        # : Use existing reset() method
         faiss_manager.reset()
         
         # Reset pipelines
@@ -244,7 +244,7 @@ async def upload_file(file: UploadFile = File(...), domain: Optional[str] = None
             "hash": file_info["hash"][:16]
         }
     
-    # FIX: Process synchronously (no background task)
+    # Process synchronously (no background task)
     try:
         result = await process_file_sync(file_info, domain)
         
@@ -363,7 +363,7 @@ def query(
         
         logger.info(f"Query received - web_search: {web_search}, domain: {domain}")
         
-        # FIX 2: Handle case where orchestrator is None (no documents uploaded)
+        #  2: Handle case where orchestrator is None (no documents uploaded)
         if orchestrator:
             state = orchestrator.run(
                 q, 
@@ -387,7 +387,7 @@ def query(
                 state = conv_agent.run(state)
                 state.agent_type = "conversational"
         
-        # FIX 3: Always return a response
+        #  3: Always return a response
         print(f"DEBUG: citations = {state.citations}")
         print(f"DEBUG: retrieved_chunks count = {len(state.retrieved_chunks)}") 
         return {

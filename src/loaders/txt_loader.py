@@ -4,7 +4,7 @@ from src.utils.logger import logger
 class TXTLoader:
     def load(self, filepath):
         try:
-            # ✅ FIX: Try UTF-8 first. If it fails, fallback to Windows-1252.
+            # Try UTF-8 first. If it fails, fallback to Windows-1252.
             try:
                 with open(filepath, "r", encoding="utf-8") as file:
                     text = file.read()

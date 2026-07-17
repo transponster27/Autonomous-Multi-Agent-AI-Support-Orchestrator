@@ -19,7 +19,7 @@ class BM25Retriever:
         scores = self.bm25.get_scores(query.split())
         ranked = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)[:top_k]
 
-        #FIX: Return the FULL dictionary from self.chunks, plus the score!
+        #Return the FULL dictionary from self.chunks, plus the score!
         # Previously, this was stripping everything except chunk_text.
         results = [{**self.chunks[i], "score": float(score)}
             for i, score in ranked]

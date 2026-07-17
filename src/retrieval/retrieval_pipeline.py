@@ -15,7 +15,7 @@ class RetrievalPipeline:
         query, 
         top_k=5, 
         document_filter: Optional[List[str]] = None,
-        domain_filter: Optional[str] = None  # ✅ Add domain filter
+        domain_filter: Optional[str] = None  #  Add domain filter
     ):
         # Pass both filters to hybrid retriever
         candidates = self.hybrid.retrieve(
