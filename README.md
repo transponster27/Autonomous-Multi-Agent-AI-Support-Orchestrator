@@ -184,19 +184,17 @@ Task-5-RAG-Pipeline/
 
 ---
 
-## ⚙️ Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
-- Python 3.10+
+- Python 3.11+
 - [Ollama](https://ollama.com/) installed and running
-- 4GB+ RAM (8GB+ recommended)
-- NVIDIA GPU recommended (optional — CPU fallback supported)
+- [Tavily API Key](https://tavily.com/) (1000 free searches/month)
 
-### Step 1: Clone and Install Dependencies
-
+### Step 1: Clone Repository
 ```bash
-git clone <your-repo-url>
-cd Task-5-RAG-Pipeline
+git clone https://github.com/transponster27/Autonomous-Multi-Agent-AI-Support-Orchestrator.git
+cd Autonomous-Multi-Agent-AI-Support-Orchestrator
 
 # Create virtual environment
 python -m venv .venv

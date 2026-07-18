@@ -148,3 +148,44 @@ chroma/
 qdrant_storage/
 *.index
 file_registry.json
+
+# ==========================================
+# PYTHON CACHE
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ==========================================
+# GENERATED ARTIFACTS
+# ==========================================
+*.pkl
+*.pickle
+cache/
+
+# ==========================================
+# RUNTIME DATA
+# ==========================================
+logs/
+data/
+raw/
+*.log
+
+# ==========================================
+# TEST DOCUMENTS (uploaded files)
+# ==========================================
+# These should only exist in storage/uploads/
+*.pdf
+*.docx
+*.doc
+*.txt
+*.png
+*.jpg
+*.jpeg
+*.gif
+# ==========================================
+# UV / MODERN PYTHON PACKAGING
+# ==========================================
+# Keep uv.lock (it's the lockfile)
+# Ignore uv cache
+.uv/
