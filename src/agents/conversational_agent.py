@@ -20,6 +20,7 @@ Assistant:"""
         answer = self.llm.generate(prompt)
         
         state.final_answer = answer
+        state.agent_type = "conversational"
         state.agent_path.append("conversational_agent")
         
         return state
