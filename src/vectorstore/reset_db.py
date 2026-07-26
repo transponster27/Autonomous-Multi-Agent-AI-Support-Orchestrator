@@ -14,4 +14,4 @@ from src.vectorstore.faiss_manager import FaissManager
 
 faiss = FaissManager(embedding_dim=768)
 faiss.reset()
-print("Database wiped clean! Please upload your file again.")
+logger.debug("Database wiped clean! Please upload your file again.")

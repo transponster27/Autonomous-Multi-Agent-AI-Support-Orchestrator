@@ -26,7 +26,7 @@ class OllamaClient:
             return result.get("response", "").strip()
             
         except requests.exceptions.RequestException as e:
-            print(f"[OLLAMA ERROR] Connection failed: {e}")
+            logger.debug(f"[OLLAMA ERROR] Connection failed: {e}")
             if hasattr(e, 'response') and e.response is not None:
-                print(f"[OLLAMA CRASH REASON]: {e.response.text}")
+                logger.debug(f"[OLLAMA CRASH REASON]: {e.response.text}")
             return "Error: LLM generation failed."

@@ -71,8 +71,8 @@ class FaissManager:
         )
 
         self.save()
-        print("Vectors Added:", len(embeddings))
-        print("Index Size:", self.index.ntotal)
+        logger.debug("Vectors Added:", len(embeddings))
+        logger.debug("Index Size:", self.index.ntotal)
     
     def search(
         self,

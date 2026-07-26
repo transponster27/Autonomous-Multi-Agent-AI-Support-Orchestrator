@@ -44,7 +44,7 @@ class RetrievalPipeline:
                 reranked,
                 top_k=top_k
             )
-            print(f"MMR selected {len(diverse_chunks)} diverse chunks from {len(reranked)} candidates")
+            logger.debug(f"MMR selected {len(diverse_chunks)} diverse chunks from {len(reranked)} candidates")
             return diverse_chunks
         
         return reranked[:top_k]

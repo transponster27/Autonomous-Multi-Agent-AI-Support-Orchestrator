@@ -303,7 +303,7 @@ async def process_file_sync(file_info: dict, domain: Optional[str] = None) -> di
                 document_name=meta["document_name"],
                 page_number=meta["page_number"]
             )
-            print(f"Chunk {chunk_idx}: {len(chunk_text)} chars")
+            logger.debug(f"Chunk {chunk_idx}: {len(chunk_text)} chars")
             metadata_list.append(meta)
             enriched_chunks.append({"chunk_text": chunk_text, **meta})
             chunk_idx += 1
@@ -388,8 +388,8 @@ def query(
                 state.agent_type = "conversational"
         
         #  3: Always return a response
-        print(f"DEBUG: citations = {state.citations}")
-        print(f"DEBUG: retrieved_chunks count = {len(state.retrieved_chunks)}") 
+        logger.debug(f"citations = {len(state.citations)}")
+        logger.debug(f"retrieved_chunks count = {len(state.retrieved_chunks)}") 
         return {
             "query": q,
             "answer": state.final_answer or "I cannot answer that.",

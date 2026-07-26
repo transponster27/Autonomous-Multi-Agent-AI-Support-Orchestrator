@@ -1,6 +1,6 @@
 # 🧠 Advanced RAG Pipeline
 
-> A production-ready Retrieval-Augmented Generation system with Hybrid Search, Cross-Encoder Reranking, Multi-Format Document Parsing, and Conversational Memory — built with FastAPI, FAISS, and Ollama.
+> A robust prototype of Retrieval-Augmented Generation system with Hybrid Search, Cross-Encoder Reranking, Multi-Format Document Parsing, and Conversational Memory — built with FastAPI, FAISS, and Ollama.
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)

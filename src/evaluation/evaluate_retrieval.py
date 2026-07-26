@@ -133,7 +133,7 @@ def run_evaluation(test_file="src/evaluation/test_set.json", report_file="src/ev
         f.write("\n".join(report_lines))
 
     logger.info(f"Evaluation complete! Report saved to: {os.path.abspath(report_file)}")
-    print(f"Evaluation complete! Report saved to: {os.path.abspath(report_file)}")
+    logger.debug(f"Evaluation complete! Report saved to: {os.path.abspath(report_file)}")
 
 if __name__ == "__main__":
     run_evaluation()

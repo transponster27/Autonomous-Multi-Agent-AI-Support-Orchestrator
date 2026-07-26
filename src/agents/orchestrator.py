@@ -27,7 +27,7 @@ class AgentOrchestrator:
         web_search_enabled: bool = False
     ) -> AgentState:
 
-        print(f"ORCHESTRATOR: web_search_enabled = {web_search_enabled}")
+        logger.debug(f"ORCHESTRATOR: web_search_enabled = {web_search_enabled}")
         
         state = AgentState(
             query=query,
