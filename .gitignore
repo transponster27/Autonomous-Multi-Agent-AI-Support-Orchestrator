@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Environments
+.venv/
+venv/
+ENV/
+
+# Runtime / Generated
+architecture/
+data/
+logs/
+output_visuals/
+storage/
+*.log
+*.pkl
+*.pickle
+
+# IDE
+.vscode/
+.idea/

@@ -5,6 +5,8 @@ class TextCleaner:
 
     @staticmethod
     def clean(text: str):
+        if not text:
+            return ""
 
         text = re.sub(
             r'\s+',
